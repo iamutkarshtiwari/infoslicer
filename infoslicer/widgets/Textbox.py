@@ -31,8 +31,13 @@ class Textbox( Gtk.TextView ):
         self.set_property("left-margin", 5)
         
     def set_article(self, article):
-        self.article = article
-        self.set_buffer(article.getBuffer())
+        if type(article) is not str:
+            self.article = article
+            self.set_buffer(article.getBuffer())
+        else:
+            buf = Gtk.TextBuffer()
+            buf.set_text(article)
+            self.set_buffer(buf)
         
     def get_article(self):
         return self.article

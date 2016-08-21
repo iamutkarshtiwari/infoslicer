@@ -146,6 +146,7 @@ class Gallery_View( Gtk.HBox ):
     def set_image_list(self, image_list):
         logger.debug("validagting image list")
         self.image_list = _validate_image_list(book.wiki.root, image_list)
+        print type(image_list[0])
         logger.debug(self.image_list)
         
     def drag_begin_event(self, widget, context, data):

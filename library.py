@@ -102,12 +102,12 @@ class View(Gtk.EventBox):
         self.searchbutton.connect('clicked', self._search_clicked_cb)
         search_box.pack_start(self.searchbutton, False, False, 0)
 
-        wiki_widget = Reading_View()
+        self.wiki_widget = Reading_View()
         wiki = Gtk.Notebook()
         wiki.props.show_border = False
         wiki.props.show_tabs = False
         wiki.append_page(wiki_stub, None)
-        wiki.append_page(wiki_widget, None)
+        wiki.append_page(self.wiki_widget, None)
 
         self.progress = Gtk.Label()
         #self.progress.set_size_request(-1, style.SMALL_ICON_SIZE+4)
@@ -124,12 +124,12 @@ class View(Gtk.EventBox):
                                   int((Gdk.Screen.height() - \
                                            style.GRID_CELL_SIZE) / 2))
 
-        custom_widget = Reading_View()
+        self.custom_widget = Reading_View()
         custom = Gtk.Notebook()
         custom.props.show_border = False
         custom.props.show_tabs = False
         custom.append_page(custom_stub, None)
-        custom.append_page(custom_widget, None)
+        custom.append_page(self.custom_widget, None)
         # custom.set_size_request(Gdk.Screen.width()/4*3,
         #         Gdk.Screen.height()/2 - 55)
         custom.set_size_request(int(Gdk.Screen.width() * 3 / 4.),
@@ -158,18 +158,18 @@ class View(Gtk.EventBox):
         # init components
 
         book.wiki.connect('article-selected', self._article_selected_cb,
-                wiki_widget, [wiki, custom])
+                self.wiki_widget, [wiki, custom])
         book.wiki.connect('article-deleted', self._article_deleted_cb,
                 [wiki, custom])
         book.custom.connect('article-selected', self._article_selected_cb,
-                custom_widget, [custom, wiki])
+                self.custom_widget, [custom, wiki])
         book.custom.connect('article-deleted', self._article_deleted_cb,
                 [custom, wiki])
 
         self._article_selected_cb(book.wiki, book.wiki.article,
-                wiki_widget, [wiki, custom])
+                self.wiki_widget, [wiki, custom])
         self._article_selected_cb(book.custom, book.custom.article,
-                custom_widget, [custom, wiki])
+                self.custom_widget, [custom, wiki])
 
         self.connect('map', self._map_cb)
 
@@ -186,7 +186,11 @@ class View(Gtk.EventBox):
             if notebooks[1].get_current_page() == 1:
                 self.activity.set_edit_sensitive(True)
 
-        article_widget.textbox.set_article(article)
+        #article_widget.textbox.set_article(article)
+
+    def do_it(self, article):
+        self.wiki_widget.textbox.set_article(article)
+
 
     def _article_deleted_cb(self, abook, article, notebooks):
         if not abook.index:
@@ -212,7 +216,11 @@ class View(Gtk.EventBox):
             Timer(0, self._download, [title, wiki]).start()
 
     def _download(self, title, wiki):
-        net.download_wiki_article(title, wiki, self.progress)
+        article = net.download_wiki_article(title, wiki, self.progress, self.activity)
+        if article is not '':
+            self.do_it(article)
+            
+
         Timer(10, self._clear_progress).start()
 
     def _clear_progress(self):
@@ -239,7 +247,8 @@ class ToolbarBuilder():
     def _publish_clicked_cb(self, widget):
         xol.publish(self.activity)
 
-WIKI = { _('English Wikipedia')         : 'en.wikipedia.org', 
+WIKI = { _('English Wikipedia')         : 'en.wikipedia.org',
+         _('School Server')             : 'http://192.168.43.146:8000/', 
          _('Simple English Wikipedia')  : 'simple.wikipedia.org', 
          _('French Wikipedia')          : 'fr.wikipedia.org',
          _('German Wikipedia')          : 'de.wikipedia.org',

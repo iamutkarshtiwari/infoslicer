@@ -98,16 +98,27 @@ class Edit_Pane(Gtk.HBox):
         #logger.debug(current_selection)
         
     def set_source_article(self, article):
-        self.articletitle.set_markup(
-                "<span size='medium'><b> %s </b>  %s</span>" % \
-                (_("Article:"), article.article_title))
+        if type(article) is not str:
+            self.articletitle.set_markup(
+                    "<span size='medium'><b> %s </b>  %s</span>" % \
+                    (_("Article:"), article.article_title))
 
-        if self.readarticle.textbox.get_article() != article:
-            self.readarticle.textbox.set_article(article)
+            if self.readarticle.textbox.get_article() != article:
+                self.readarticle.textbox.set_article(article)
+        else:        
+                # Offline wiki text
+                buf = Gtk.TextBuffer()
+                buf.set_text(article)
+                self.readarticle.textbox.set_buffer(buf)
         
     def set_working_article(self, article):
-        self.editarticle.articletitle.set_markup(
-                "<span size='medium'><b> %s </b>  %s</span>" % \
-                (_("Article:"), article.article_title))
-        if self.editarticle.textbox.get_article() != article:
-            self.editarticle.textbox.set_article(article)
+        if type(article) is not str:
+            self.editarticle.articletitle.set_markup(
+                    "<span size='medium'><b> %s </b>  %s</span>" % \
+                    (_("Article:"), article.article_title))
+            if self.editarticle.textbox.get_article() != article:
+                self.editarticle.textbox.set_article(article)
+        else:
+                buf = Gtk.TextBuffer()
+                buf.set_text(article)
+                self.editarticle.textbox.set_buffer(buf)

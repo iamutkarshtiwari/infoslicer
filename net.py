@@ -15,12 +15,21 @@
 import os
 import shutil
 import urllib
+import urllib2
 import logging
+import html2text
 from gettext import gettext as _
+
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import GObject
+
+from BeautifulSoup import BeautifulSoup
 
 from sugar3.activity.activity import get_bundle_path
 
 import book
+import edit
 from infoslicer.processing.NewtifulSoup import NewtifulStoneSoup \
         as BeautifulStoneSoup
 from infoslicer.processing.MediaWiki_Parser import MediaWiki_Parser
@@ -31,28 +40,72 @@ logger = logging.getLogger('infoslicer')
 elogger = logging.getLogger('infoslicer::except')
 
 proxies = None
+WIKI = { 'en.wikipedia.org', 
+         'simple.wikipedia.org', 
+         'fr.wikipedia.org',
+         'de.wikipedia.org',
+         'pl.wikipedia.org',
+         'es.wikipedia.org'  }
 
-def download_wiki_article(title, wiki, progress):
-    try:
-        progress.set_label(_('"%s" download in progress...') % title)
-        article, url = MediaWiki_Helper().getArticleAsHTMLByTitle(title, wiki)
+def download_wiki_article(title, wiki, progress, activity):
+    if wiki not in WIKI:
 
-        progress.set_label(_('Processing "%s"...') % title)
-        parser = MediaWiki_Parser(article, title, url)
-        contents = parser.parse()
+        try:
 
-        progress.set_label(_('Downloading "%s" images...') % title)
-        book.wiki.create(title + _(' (from %s)') % wiki, contents)
+            search = "http://10.211.55.2:8000/search?content=wikipedia_en_for_schools_opt_2013&pattern=%s" % (title)
+            f = urllib2.urlopen(search)
+            string = f.read()
+            f.close()
+            
+            # Extracts textual content from the offline wiki page
+            h = html2text.HTML2Text()
+            h.ignore_links = True
+            h.ignore_images = True
+            string = str(h.handle(string))
+        
+            edit.TABS[0].set_source_article(string)
+            
+            return str(string)
 
-        progress.set_label(_('"%s" successfully downloaded') % title)
+        except Exception, e:
+            if e == 'URLError':
+                print 'silo'
+            elogger.debug('download_and_add: %s' % e)
+            progress.set_label(_('"%s" could not be found') % title)
+        '''
+        except URLError, e:
+            elogger.debug('download_and_add: %s' % e)
+            progress.set_label(_('Error downloading "%s"; check your connection') % title)'''
 
-    except PageNotFoundError, e:
-        elogger.debug('download_and_add: %s' % e)
-        progress.set_label(_('"%s" could not be found') % title)
 
-    except Exception, e:
-        elogger.debug('download_and_add: %s' % e)
-        progress.set_label(_('Error downloading "%s"; check your connection') % title)
+
+
+
+
+    
+    else:    
+        try:
+            progress.set_label(_('"%s" download in progress...') % title)
+            article, url = MediaWiki_Helper().getArticleAsHTMLByTitle(title, wiki)
+
+            progress.set_label(_('Processing "%s"...') % title)
+            parser = MediaWiki_Parser(article, title, url)
+            contents = parser.parse()
+
+            progress.set_label(_('Downloading "%s" images...') % title)
+            book.wiki.create(title + _(' (from %s)') % wiki, contents)
+
+            progress.set_label(_('"%s" successfully downloaded') % title)
+
+        except PageNotFoundError, e:
+            elogger.debug('download_and_add: %s' % e)
+            progress.set_label(_('"%s" could not be found') % title)
+
+        except Exception, e:
+            elogger.debug('download_and_add: %s' % e)
+            progress.set_label(_('Error downloading "%s"; check your connection') % title)
+
+        return ''    
 
 def image_handler(root, uid, document):
     """
