@@ -39,7 +39,7 @@ TABS = (Edit_Pane(),
         Image_Pane(),
         Journal_Image_Pane(),
         Format_Pane())
-
+OFFLINE_MODE_ACTIVE = False
 
 class View(Gtk.Notebook):
     def __init__(self):
@@ -54,12 +54,13 @@ class View(Gtk.Notebook):
         self.connect('map', self._map_cb)
 
     def _map_cb(self, widget):
-        index = self.get_current_page()
+    	if OFFLINE_MODE_ACTIVE == False:
+	        index = self.get_current_page()
 
-        if book.wiki.article:
-            TABS[index].set_source_article(book.wiki.article)
-        if book.custom.article:
-            TABS[index].set_working_article(book.custom.article)
+	        if book.wiki.article:
+	            TABS[index].set_source_article(book.wiki.article)
+	        if book.custom.article:
+	            TABS[index].set_working_article(book.custom.article)
 
 class ToolbarBuilder():
     def __init__(self, edit, toolbar):

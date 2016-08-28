@@ -31,6 +31,7 @@ import sugar3.graphics.style as style
 
 import xol
 import net
+import edit
 import book
 from bookview import BookView
 from infoslicer.widgets.Reading_View import Reading_View
@@ -185,12 +186,8 @@ class View(Gtk.EventBox):
             notebooks[0].set_current_page(1)
             if notebooks[1].get_current_page() == 1:
                 self.activity.set_edit_sensitive(True)
-
-        #article_widget.textbox.set_article(article)
-
-    def do_it(self, article):
-        self.wiki_widget.textbox.set_article(article)
-
+                
+        article_widget.textbox.set_article(article)
 
     def _article_deleted_cb(self, abook, article, notebooks):
         if not abook.index:
@@ -217,11 +214,15 @@ class View(Gtk.EventBox):
 
     def _download(self, title, wiki):
         article = net.download_wiki_article(title, wiki, self.progress, self.activity)
-        if article is not '':
-            self.do_it(article)
-            
+        # Displays contents from offline zim wiki
+        if not article in ['', 'Error']:
+            self._display_zim_content(article)       
 
         Timer(10, self._clear_progress).start()
+
+    def _display_zim_content(self, article):
+        self.wiki_widget.textbox.set_article(article)
+        edit.TABS[0].readarticle.textbox.set_article(article)
 
     def _clear_progress(self):
         self.progress.set_label('')
@@ -247,8 +248,9 @@ class ToolbarBuilder():
     def _publish_clicked_cb(self, widget):
         xol.publish(self.activity)
 
+SCHOOLWIKI_URI = net._read_configuration('get-url.cfg')[0]
 WIKI = { _('English Wikipedia')         : 'en.wikipedia.org',
-         _('School Server')             : 'http://192.168.43.146:8000/', 
+         _('School Wikipedia')          : SCHOOLWIKI_URI, 
          _('Simple English Wikipedia')  : 'simple.wikipedia.org', 
          _('French Wikipedia')          : 'fr.wikipedia.org',
          _('German Wikipedia')          : 'de.wikipedia.org',

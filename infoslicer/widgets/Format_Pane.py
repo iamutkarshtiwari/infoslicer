@@ -44,11 +44,16 @@ class Format_Pane(Editing_View):
         """
 
     def set_source_article(self, article):
-        self.source = article
+        if type(article) is not str:
+            self.source = article
+        else:
+            buf = Gtk.TextBuffer()
+            buf.set_text(article)
+            self.textbox.set_buffer(buf) 
         
     def set_working_article(self, article):
         self.articletitle.set_markup(
                 "<span size='medium'><b> %s </b>  %s</span>" % \
                 (_("Article:"), article.article_title))
         if self.textbox.get_article() != article:
-            self.textbox.set_article(article)      
+            self.textbox.set_article(article)    

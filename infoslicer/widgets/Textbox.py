@@ -35,7 +35,7 @@ class Textbox( Gtk.TextView ):
             self.article = article
             self.set_buffer(article.getBuffer())
         else:
-            buf = Gtk.TextBuffer()
+            buf = self.get_buffer()
             buf.set_text(article)
             self.set_buffer(buf)
         
