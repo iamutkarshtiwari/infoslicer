@@ -31,14 +31,13 @@ from infoslicer.processing.HTML_strip import dehtml
 from infoslicer.processing.Article import Article
 
 import book
-
 import logging
-
 
 TABS = (Edit_Pane(),
         Image_Pane(),
         Journal_Image_Pane(),
         Format_Pane())
+
 OFFLINE_MODE_ACTIVE = False
 
 class View(Gtk.Notebook):
@@ -166,10 +165,11 @@ class ToolbarBuilder():
         for i in TABS[index].toolitems:
             i.show()
 
-        # We don't require any article data to display jounal images
-        if book.wiki.article and index != 2:
-            TABS[index].set_source_article(book.wiki.article)
-        if book.custom.article:
-            TABS[index].set_working_article(book.custom.article)
+        if OFFLINE_MODE_ACTIVE is True:   
+	        # We don't require any article data to display jounal images
+	        if book.wiki.article and index != 2:
+	            TABS[index].set_source_article(book.wiki.article)
+	        if book.custom.article:
+	            TABS[index].set_working_article(book.custom.article)
 
         self.edit.set_current_page(index)

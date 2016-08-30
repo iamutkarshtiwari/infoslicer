@@ -13,6 +13,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
+import io
 import shutil
 import urllib
 import urllib2
@@ -30,9 +31,8 @@ from BeautifulSoup import BeautifulSoup
 
 from sugar3.activity.activity import get_bundle_path, get_activity_root
 
-
 import book
-import edit
+from edit import OFFLINE_MODE_ACTIVE, TABS
 from infoslicer.processing.NewtifulSoup import NewtifulStoneSoup \
         as BeautifulStoneSoup
 from infoslicer.processing.MediaWiki_Parser import MediaWiki_Parser
@@ -55,7 +55,8 @@ def download_wiki_article(title, wiki, progress, activity):
 
         try:
             #progress.set_label(_('"%s" download in progress...') % title)
-            edit.OFFLINE_MODE_ACTIVE = True
+            OFFLINE_MODE_ACTIVE = True
+            title = (title.strip()).replace(' ', '+')
             search = _read_configuration()[0] + _read_configuration()[1] + "%s" % (title)
             f = urllib2.urlopen(search)
             document = f.read()
@@ -66,38 +67,37 @@ def download_wiki_article(title, wiki, progress, activity):
             h.ignore_links = True
             h.ignore_images = True
             text = str(h.handle(document))
-        
-            
 
-
-            # Image downloads
+            # Image downloads path
             dir_path = os.path.join(get_activity_root(), 'data', 'book')
 
-            
             uid = str(uuid.uuid1())
-            zim_image_handler(dir_path, uid, document)
+            
+            text_path = os.path.join(dir_path, uid,'content.txt')
+            if not os.path.exists(os.path.join(dir_path, uid)):
+                os.makedirs(os.path.join(dir_path, uid), 0777)
 
-            return text
+            file = open(text_path, "w+")
+            file.write(text)
+            file.close()
+
+            # with io.FileIO(text_path, "w+") as file:
+            #     file.write(text)
+            # file.close()    
+            image_list = zim_image_handler(dir_path, uid, document)
+            TABS[1].gallery.set_image_list(image_list)
 
 
-
-
-
+            return text_path
+        
         except urllib2.URLError, e:
             elogger.debug('download_and_add: %s' % e)
-            progress.set_label(_('Error downloading "%s"; check your connection') % title)
+            progress.set_label(_('"%s" could not be found. Check your connection') % title.replace('+', ' '))
             return 'Error'    
-
-        except Exception, e:
-            elogger.debug('download_and_add: %s' % e)
-            progress.set_label(_('"%s" could not be found') % title)
-            return 'Error'
-        
-       
 
     else:    
         try:
-            edit.OFFLINE_MODE_ACTIVE = False
+            OFFLINE_MODE_ACTIVE = False
             progress.set_label(_('"%s" download in progress...') % title)
             article, url = MediaWiki_Helper().getArticleAsHTMLByTitle(title, wiki)
 
@@ -125,7 +125,6 @@ def _read_configuration(file_name='get-url.cfg'):
     Reads the source 'uri' and 'query_uri' of the SchoolServer Wikipedia
     from get-url.cfg file
     '''
-    logging.error('Reading configuration from file %s', file_name)
     config = ConfigParser.ConfigParser()
     config.readfp(open(file_name))
     if config.has_option('SchoolServer', 'source_uri'):
@@ -147,25 +146,37 @@ def zim_image_handler(root, uid, document):
     Generates a list of the links to all the downloaded images 
     present in the searched article from offline zim wikipedia
     '''
+    # Kiwix image exceptions
+    ignored_images = ["schools-wikipedia-logo", "checked-content"]
     document = BeautifulSoup(document)
     dir_path = os.path.join(root, uid, "images")
 
     logger.debug('image_handler: %s' % dir_path)
 
-    # Kiwix image exceptions
-    #image_exceptions = []
-
     if not os.path.exists(dir_path):
         os.makedirs(dir_path, 0777)
 
-
+    image_list = []
     for image in document.findAll("img"):
         fail = False
         path = image['src']
-        image_title = os.path.split(path)[1]
-        print image_title
-        #if image_title not in 
-    return    
+        image_title = (os.path.split(path)[1])[:-4]
+        image_ext = (os.path.split(path)[1])[-3:]
+
+        source_path = _read_configuration()[0] + path[1:]
+        local_path = os.path.join(dir_path, os.path.split(path)[1])
+
+        if not (image_ext == 'gif' or image_title in ignored_images):
+            image_contents = _open_url(source_path)
+            if not image_contents is None:
+                file = open(local_path, 'w+')
+                file.write(image_contents)
+                file.close()
+                image_list.append((local_path, image_title))
+
+
+    return image_list
+
          #shutil.copyfile(path, os.path.join(dir_path, image_title))
     #     logger.debug("Retrieving image: " + path)
     #     file = open(os.path.join(dir_path, image_title), 'wb')

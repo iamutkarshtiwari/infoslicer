@@ -145,6 +145,7 @@ class Gallery_View( Gtk.HBox ):
         self.imagenumberlabel.set_text("(%d / %d)\n" % (self.current_index+1, len(self.image_list)))    
         
     def set_image_list(self, image_list):
+        print image_list
         logger.debug("validagting image list")
         self.image_list = _validate_image_list(book.wiki.root, image_list)
         logger.debug(self.image_list)

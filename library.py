@@ -31,7 +31,6 @@ import sugar3.graphics.style as style
 
 import xol
 import net
-import edit
 import book
 from bookview import BookView
 from infoslicer.widgets.Reading_View import Reading_View
@@ -213,16 +212,21 @@ class View(Gtk.EventBox):
             Timer(0, self._download, [title, wiki]).start()
 
     def _download(self, title, wiki):
-        article = net.download_wiki_article(title, wiki, self.progress, self.activity)
+        text_path = net.download_wiki_article(title, wiki, self.progress, self.activity)
         # Displays contents from offline zim wiki
-        if not article in ['', 'Error']:
-            self._display_zim_content(article)       
+        if not text_path in ['', 'Error']:
+            self._display_zim_content(text_path)       
 
         Timer(10, self._clear_progress).start()
 
-    def _display_zim_content(self, article):
-        self.wiki_widget.textbox.set_article(article)
-        edit.TABS[0].readarticle.textbox.set_article(article)
+    def _display_zim_content(self, text_path):
+        # Reads wiki text from saved file
+        file = open(text_path, 'r')
+        text = file.read()
+        self.wiki_widget.textbox.set_article(text)
+        #self.activity.TABS[0].readarticle.textbox.set_article(text)
+
+        file.close()
 
     def _clear_progress(self):
         self.progress.set_label('')
