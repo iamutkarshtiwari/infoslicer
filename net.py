@@ -70,9 +70,7 @@ def download_wiki_article(title, wiki, progress, activity):
 
             # Image downloads path
             dir_path = os.path.join(get_activity_root(), 'data', 'book')
-
-            uid = str(uuid.uuid1())
-            
+            uid = str(uuid.uuid1())            
             text_path = os.path.join(dir_path, uid,'content.txt')
             if not os.path.exists(os.path.join(dir_path, uid)):
                 os.makedirs(os.path.join(dir_path, uid), 0777)
@@ -80,13 +78,8 @@ def download_wiki_article(title, wiki, progress, activity):
             file = open(text_path, "w+")
             file.write(text)
             file.close()
-
-            # with io.FileIO(text_path, "w+") as file:
-            #     file.write(text)
-            # file.close()    
             image_list = zim_image_handler(dir_path, uid, document)
             TABS[1].gallery.set_image_list(image_list)
-
 
             return text_path
         
@@ -172,35 +165,14 @@ def zim_image_handler(root, uid, document):
                 file = open(local_path, 'w+')
                 file.write(image_contents)
                 file.close()
-                image_list.append((local_path, image_title))
+                os.path.join(get_bundle_path(), 'examples')
+                image_title = os.path.split(path)[1]
+                shutil.copy2(local_path, os.path.join(get_bundle_path(), 'examples'))
 
+                image_list.append((local_path, image_title, (os.path.join(get_bundle_path(), 
+                                    'examples', (os.path.split(path)[1])))))
 
     return image_list
-
-         #shutil.copyfile(path, os.path.join(dir_path, image_title))
-    #     logger.debug("Retrieving image: " + path)
-    #     file = open(os.path.join(dir_path, image_title), 'wb')
-    #         image_contents = _open_url(path)
-    #         if image_contents == None:
-    #             fail = True
-    #         else:
-    #             file.write(image_contents)
-    #         file.close()
-    #     #change to relative paths:
-    #     if not fail:
-    #         image['href'] = os.path.join(dir_path.replace(os.path.join(root, ""), "", 1), image_title)
-    #         image['orig_href'] = path
-    #     else:
-    #         image.extract()
-
-    # return document.prettify()
-
-
-
-
-
-
-
 
 def image_handler(root, uid, document):
     """

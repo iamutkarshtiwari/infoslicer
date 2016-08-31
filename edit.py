@@ -165,7 +165,7 @@ class ToolbarBuilder():
         for i in TABS[index].toolitems:
             i.show()
 
-        if OFFLINE_MODE_ACTIVE is True:   
+        if OFFLINE_MODE_ACTIVE is False:   
 	        # We don't require any article data to display jounal images
 	        if book.wiki.article and index != 2:
 	            TABS[index].set_source_article(book.wiki.article)
