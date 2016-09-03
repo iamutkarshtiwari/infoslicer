@@ -39,6 +39,8 @@ TABS = (Edit_Pane(),
         Format_Pane())
 
 OFFLINE_MODE_ACTIVE = False
+IMAGE_LIST = None
+UID = None
 
 class View(Gtk.Notebook):
     def __init__(self):
@@ -53,13 +55,12 @@ class View(Gtk.Notebook):
         self.connect('map', self._map_cb)
 
     def _map_cb(self, widget):
-    	if OFFLINE_MODE_ACTIVE == False:
-	        index = self.get_current_page()
+        index = self.get_current_page()
 
-	        if book.wiki.article:
-	            TABS[index].set_source_article(book.wiki.article)
-	        if book.custom.article:
-	            TABS[index].set_working_article(book.custom.article)
+        if book.wiki.article:
+            TABS[index].set_source_article(book.wiki.article)
+        if book.custom.article:
+            TABS[index].set_working_article(book.custom.article)
 
 class ToolbarBuilder():
     def __init__(self, edit, toolbar):
@@ -165,11 +166,40 @@ class ToolbarBuilder():
         for i in TABS[index].toolitems:
             i.show()
 
-        if OFFLINE_MODE_ACTIVE is False:   
-	        # We don't require any article data to display jounal images
-	        if book.wiki.article and index != 2:
-	            TABS[index].set_source_article(book.wiki.article)
-	        if book.custom.article:
-	            TABS[index].set_working_article(book.custom.article)
+        #if OFFLINE_MODE_ACTIVE is False:       
+        # We don't require any article data to display jounal images
+        if book.wiki.article and index != 2:
+            TABS[index].set_source_article(book.wiki.article)
+        if book.custom.article:
+            TABS[index].set_working_article(book.custom.article)
+
+        if OFFLINE_MODE_ACTIVE is True and index == 1: 
+            
+            if IMAGE_LIST != []:
+                #TABS[1].gallery.image.clear()
+
+
+
+                TABS[1].gallery.set_image_list(IMAGE_LIST)
+                TABS[1].gallery.get_first_item()
+                TABS[1].gallery.source_article_id = UID 
+
+                # if index == 0:
+
+                #     buf = TABS[0].editarticle.textbox.get_buffer()
+                #     TABS[1].editarticle.textbox.set_buffer(buf)
+                # if index == 1:
+                #     buf = TABS[1].editarticle.textbox.get_buffer()
+                #     TABS[0].editarticle.textbox.set_buffer(buf)
+                    
+
+                #buf = TABS[1].editarticle.textbox.get_buffer()
+                #buf.set_text('')
+                #TABS[1].editarticle.textbox.set_buffer(buf)
+                # buf = edit.TABS[1].editarticle.textbox.get_buffer()
+                # buf.set_text(text)
+                # edit.TABS[1].editarticle.textbox.set_buffer(buf)               
 
         self.edit.set_current_page(index)
+
+            

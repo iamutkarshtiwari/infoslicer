@@ -32,7 +32,7 @@ from BeautifulSoup import BeautifulSoup
 from sugar3.activity.activity import get_bundle_path, get_activity_root
 
 import book
-from edit import OFFLINE_MODE_ACTIVE, TABS
+import edit
 from infoslicer.processing.NewtifulSoup import NewtifulStoneSoup \
         as BeautifulStoneSoup
 from infoslicer.processing.MediaWiki_Parser import MediaWiki_Parser
@@ -55,9 +55,9 @@ def download_wiki_article(title, wiki, progress, activity):
 
         try:
             #progress.set_label(_('"%s" download in progress...') % title)
-            OFFLINE_MODE_ACTIVE = True
+            edit.OFFLINE_MODE_ACTIVE = True
             title = (title.strip()).replace(' ', '+')
-            search = _read_configuration()[0] + _read_configuration()[1] + "%s" % (title)
+            search = _read_configuration()[1] + "%s" % (title)
             f = urllib2.urlopen(search)
             document = f.read()
             f.close()
@@ -78,8 +78,11 @@ def download_wiki_article(title, wiki, progress, activity):
             file = open(text_path, "w+")
             file.write(text)
             file.close()
+
             image_list = zim_image_handler(dir_path, uid, document)
-            TABS[1].gallery.set_image_list(image_list)
+            if image_list != []:
+                edit.IMAGE_LIST = image_list
+                edit.UID = uid
 
             return text_path
         
@@ -90,7 +93,7 @@ def download_wiki_article(title, wiki, progress, activity):
 
     else:    
         try:
-            OFFLINE_MODE_ACTIVE = False
+            edit.OFFLINE_MODE_ACTIVE = False
             progress.set_label(_('"%s" download in progress...') % title)
             article, url = MediaWiki_Helper().getArticleAsHTMLByTitle(title, wiki)
 
@@ -148,6 +151,9 @@ def zim_image_handler(root, uid, document):
 
     if not os.path.exists(dir_path):
         os.makedirs(dir_path, 0777)
+    act_path = os.path.join(get_bundle_path(), 'examples', 'images')
+    if not os.path.exists(act_path):
+        os.makedirs(act_path, 0777)    
 
     image_list = []
     for image in document.findAll("img"):
@@ -167,10 +173,10 @@ def zim_image_handler(root, uid, document):
                 file.close()
                 os.path.join(get_bundle_path(), 'examples')
                 image_title = os.path.split(path)[1]
-                shutil.copy2(local_path, os.path.join(get_bundle_path(), 'examples'))
+                shutil.copy2(local_path, os.path.join(get_bundle_path(), 'examples', 'images'))
 
-                image_list.append((local_path, image_title, (os.path.join(get_bundle_path(), 
-                                    'examples', (os.path.split(path)[1])))))
+                image_list.append((os.path.join(uid, "images", os.path.split(path)[1]), image_title, (os.path.join(get_bundle_path(), 
+                                    'examples', 'images', (os.path.split(path)[1])))))
 
     return image_list
 

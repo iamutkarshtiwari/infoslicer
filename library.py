@@ -215,15 +215,17 @@ class View(Gtk.EventBox):
         text_path = net.download_wiki_article(title, wiki, self.progress, self.activity)
         # Displays contents from offline zim wiki
         if not text_path in ['', 'Error']:
-            self._display_zim_content(text_path)       
+            self._display_zim_contents(text_path)       
 
         Timer(10, self._clear_progress).start()
 
-    def _display_zim_content(self, text_path):
+    def _display_zim_contents(self, text_path):
         # Reads wiki text from saved file
         file = open(text_path, 'r')
         text = file.read()
-        self.wiki_widget.textbox.set_article(text)
+        buf = self.wiki_widget.textbox.get_buffer()
+        buf.set_text(text)
+        self.wiki_widget.textbox.set_buffer(buf)
         #self.activity.TABS[0].readarticle.textbox.set_article(text)
 
         file.close()
