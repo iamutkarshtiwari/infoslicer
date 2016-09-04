@@ -31,6 +31,7 @@ import sugar3.graphics.style as style
 
 import xol
 import net
+import edit
 import book
 from bookview import BookView
 from infoslicer.widgets.Reading_View import Reading_View
@@ -187,6 +188,7 @@ class View(Gtk.EventBox):
                 self.activity.set_edit_sensitive(True)
                 
         article_widget.textbox.set_article(article)
+        edit.OFFLINE_MODE_ACTIVE = False
 
     def _article_deleted_cb(self, abook, article, notebooks):
         if not abook.index:
@@ -226,8 +228,6 @@ class View(Gtk.EventBox):
         buf = self.wiki_widget.textbox.get_buffer()
         buf.set_text(text)
         self.wiki_widget.textbox.set_buffer(buf)
-        #self.activity.TABS[0].readarticle.textbox.set_article(text)
-
         file.close()
 
     def _clear_progress(self):

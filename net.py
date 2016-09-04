@@ -58,6 +58,7 @@ def download_wiki_article(title, wiki, progress, activity):
             edit.OFFLINE_MODE_ACTIVE = True
             title = (title.strip()).replace(' ', '+')
             search = _read_configuration()[1] + "%s" % (title)
+            title = title.replace('+', ' ')
             f = urllib2.urlopen(search)
             document = f.read()
             f.close()
@@ -79,6 +80,7 @@ def download_wiki_article(title, wiki, progress, activity):
             file.write(text)
             file.close()
 
+            edit.ARTICLE_TITLE = title
             image_list = zim_image_handler(dir_path, uid, document)
             if image_list != []:
                 edit.IMAGE_LIST = image_list
@@ -88,7 +90,7 @@ def download_wiki_article(title, wiki, progress, activity):
         
         except urllib2.URLError, e:
             elogger.debug('download_and_add: %s' % e)
-            progress.set_label(_('"%s" could not be found. Check your connection') % title.replace('+', ' '))
+            progress.set_label(_('"%s" could not be found. Check your connection') % title)
             return 'Error'    
 
     else:    
